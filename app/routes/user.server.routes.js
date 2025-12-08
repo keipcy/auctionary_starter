@@ -10,7 +10,7 @@ module.exports = function(app) {
         .post(users.logout);
     // auction management
     app.route("/item")
-        .post(new_item);
+        .post();
     app.route("/item/:item_id/bid")
         .post();
     app.route("/item/:item_id")

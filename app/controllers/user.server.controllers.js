@@ -1,4 +1,7 @@
-// const user = require("./app/models/user.server.models")
+const user = require("../models/user.server.models")
+const Joi = require("joi")
+const crypto = require("crypto")
+const db = require("../../database")
 
 // functions
 
@@ -9,39 +12,70 @@ const getHash = function(password, salt) {
 // user management
 
 const create_account = (req, res) => {
-    const salt = crypto.randomBytes(64);
-    const hash = getHash(user.password, salt)
+    const schema = Joi.object({
+        first_name: Joi.string().min(1).required(),
+        last_name: Joi.string().min(1).required(),
+        email: Joi.string().email().required(),
+        password: Joi.string().min(9).max(40).required()
+    });
 
-    const sql = 'INSERT INTO users (first_name, last_name, email, password, salt) VALUES (?, ?, ?, ?, ?)'
-    let values = [user.first_name, user.last_name, user.email, hash, salt.toString('hex')]
+    const { error, value } = schema.validate(req.body);
+    
+    if(error) {
+        return res.status(400).json({ error_message: error.details[0].message });
+    }
 
-    db.run(sql, values, function(err){
-        if(err) return done(err)
-    })
+    user.createAccount(value.first_name, value.last_name, value.email, value.password, (err, user_id) => {
+        if(err) {
+            return res.status(400).json({ error_message: 'Email already exists' });
+        }
+        return res.status(201).json({ user_id: user_id });
+    });
 }
 
-const login = (email, password, done) => {
-    const sql = 'SELECT user_id, password, salt FROM users WHERE email_id = ?'
+const login = (req, res) => {
+    const schema = Joi.object({
+        email: Joi.string().email().required(),
+        password: Joi.string().required()
+    });
 
-    db.get(sql, [email], (err, row) => {
-        if(err) return done(err)
-        if(!row) return done(404) // wrong email
+    const { error, value } = schema.validate(req.body);
 
-        if(row.salt === null) row.salt = ''
+    if(error) return res.status(400).json({error_message: error.details[0].message});
 
-        let salt = Buffer.from(row.salt, 'hex')
+    user.getUserByEmail(value.email, (err, row) => {
+        if(err || !row) return res.status(400).json({error_message: "Invalid email or password"})
 
-        if(row.password === getHash(password, salt)) {
-            return done(false, row.user_id)
-        } else {
-            return done(404) // wrong password
-        }
-    })
-    return res.sendStatus(500)
+        const salt = Buffer.from(row.salt, 'hex');
+        const hash = getHash(value.password, salt);
+
+        if(row.password !== hash) return res.status(400).json({error_message: 'Invalid email or password'})
+
+        const session_token = crypto.randomBytes(32).toString('hex');
+        const sql = 'UPDATE users SET session_token = ? WHERE user_id = ?';
+
+        db.run(sql, [session_token, row.user_id], (err) => {
+            if(err) return res.status(500).json({error_message: 'Server error'});
+            return res.status(200).json({
+                user_id: row.user_id,
+                session_token: session_token
+            });
+        });
+    });
 }
 
 const logout = (req, res) => {
-    return res.sendStatus(500)
+    const session_token = req.get('X-Authorization');
+
+    if(!session_token) return res.status(401).json({error_message: "No session token"});
+
+    const sql = 'UPDATE users SET session_token = NULL WHERE session_token = ?';
+
+    db.run(sql, [session_token], function(err) {
+        if(err) return res.status(500).json({error_message: 'Server error'});
+        if(this.changes === 0) return res.status(401).json({error_message: 'Invalid session token'});
+        return res.status(200).json({message: 'Logged out successfully'})
+    })
 }
 
 // auction manangement
