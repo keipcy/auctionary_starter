@@ -8,6 +8,8 @@ module.exports = function(app) {
         .post(users.login);
     app.route("/logout")
         .post(users.logout);
+    app.route("/users/:user_id")
+        .get(users.get_user);
     // question management
     // app.route("/item/:item_id/question")
     //     .get();

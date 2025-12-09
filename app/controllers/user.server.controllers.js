@@ -9,6 +9,17 @@ const getHash = function(password, salt) {
     return crypto.pbkdf2Sync(password, salt, 10000, 256, 'sha256').toString('hex')
 }
 
+const get_user = (req, res) => {
+    let id = parseInt(req.params.user_id)
+    if(isNaN(id) || id <= 0) return res.status(400).json({ error_message: 'Invalid user id'})
+
+    user.getUserProfile(id, (err, row) => {
+        if(err) return res.status(500).json({ error_message: 'Server error' });
+        if(!row) return res.status(404).json({ error_message: 'User not found' });
+        return res.status(200).json(row);
+    })
+}
+
 // user management
 
 const create_account = (req, res) => {
@@ -90,7 +101,8 @@ const answer_question = (req, res) => {
 }
 
 module.exports = {
-    create_account: create_account,
-    login: login,
-    logout: logout
+    create_account,
+    login,
+    logout,
+    get_user
 }
