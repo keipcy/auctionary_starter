@@ -1,0 +1,45 @@
+// users
+
+{
+	"email": "tomsmu@gmail.com",
+	"password": "helloThere"
+}
+
+{
+	"email": "oompyloompy@outlook.com",
+	"password": "helloOverThere"
+}
+
+{
+	"first_name": "kreula",
+	"last_name": "doodoo",
+	"email": "kdoodoo@yahoo.com",
+	"password": "helloRightHere"
+}
+
+// items
+
+{
+  "name": "Henry Hoover",
+  "description": "Barely used henry hoover - freshly emptied",
+  "starting_bid": 99,
+  "end_date": 89983256
+}
+
+{
+  "name": "Shark Hoover",
+  "description": "Barely used shark hoover - freshly emptied",
+  "starting_bid": 85,
+  "end_date": 1798761600
+}
+
+{
+  "name": "Olly Murs Ticket",
+  "description": "Show at 8pm 23rd March 2076",
+  "starting_bid": 50,
+  "end_date": 1798761600
+} // item id = 3
+
+{
+  "amount": 87
+}

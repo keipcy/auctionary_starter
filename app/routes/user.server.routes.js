@@ -8,20 +8,11 @@ module.exports = function(app) {
         .post(users.login);
     app.route("/logout")
         .post(users.logout);
-    // auction management
-    app.route("/item")
-        .post();
-    app.route("/item/:item_id/bid")
-        .post();
-    app.route("/item/:item_id")
-        .get();
-    app.route("/item/:item_id/bid")
-        .get();
     // question management
-    app.route("/item/:item_id/question")
-        .get();
-    app.route("/item/:item_id/question")
-        .post();
-    app.route("/question/:question_id")
-        .post();
+    // app.route("/item/:item_id/question")
+    //     .get();
+    // app.route("/item/:item_id/question")
+    //     .post();
+    // app.route("/question/:question_id")
+    //     .post();
     }

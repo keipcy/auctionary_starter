@@ -26,9 +26,7 @@ const create_account = (req, res) => {
     }
 
     user.createAccount(value.first_name, value.last_name, value.email, value.password, (err, user_id) => {
-        if(err) {
-            return res.status(400).json({ error_message: 'Email already exists' });
-        }
+        if(err) return res.status(400).json({ error_message: 'Email already exists' });
         return res.status(201).json({ user_id: user_id });
     });
 }
@@ -40,7 +38,6 @@ const login = (req, res) => {
     });
 
     const { error, value } = schema.validate(req.body);
-
     if(error) return res.status(400).json({error_message: error.details[0].message});
 
     user.getUserByEmail(value.email, (err, row) => {
@@ -78,24 +75,6 @@ const logout = (req, res) => {
     })
 }
 
-// auction manangement
-
-const new_item = (req, res) => {
-    return res.sendStatus(500)
-}
-
-const get_item = (req, res) => {
-    return res.sendStatus(500)
-}
-
-const bid_item = (req, res) => {
-    return res.sendStatus(500)
-}
-
-const bid_history = (req, res) => {
-    return res.sendStatus(500)
-}
-
 // question management
 
 const get_questions = (req, res) => {
@@ -113,12 +92,5 @@ const answer_question = (req, res) => {
 module.exports = {
     create_account: create_account,
     login: login,
-    logout: logout,
-    new_item: new_item,
-    get_item: get_item,
-    bid_item: bid_item,
-    bid_history: bid_history,
-    get_questions: get_questions,
-    ask_question: ask_question,
-    answer_question: answer_question
+    logout: logout
 }
