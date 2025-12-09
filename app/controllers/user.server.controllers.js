@@ -9,6 +9,8 @@ const getHash = function(password, salt) {
     return crypto.pbkdf2Sync(password, salt, 10000, 256, 'sha256').toString('hex')
 }
 
+// user management
+
 const get_user = (req, res) => {
     let id = parseInt(req.params.user_id)
     if(isNaN(id) || id <= 0) return res.status(400).json({ error_message: 'Invalid user id'})
@@ -20,14 +22,12 @@ const get_user = (req, res) => {
     })
 }
 
-// user management
-
 const create_account = (req, res) => {
     const schema = Joi.object({
         first_name: Joi.string().min(1).required(),
         last_name: Joi.string().min(1).required(),
         email: Joi.string().email().required(),
-        password: Joi.string().min(9).max(40).required()
+        password: Joi.string().min(9).max(40).pattern(/[A-Z]/).pattern(/[a-z]/).pattern(/[0-9]/).pattern(/[!@#$%^&*]/).required()
     });
 
     const { error, value } = schema.validate(req.body);
