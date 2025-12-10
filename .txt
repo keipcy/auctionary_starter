@@ -1,8 +1,10 @@
 // users
 
 {
-	"email": "tomsmu@gmail.com",
-	"password": "helloThere"
+  "first_name": "tommy",
+	"last_name": "smellby",
+	"email": "tomsmells@gmail.com",
+	"password": "Wr3Xh4m!mm"
 }
 
 {
@@ -14,7 +16,7 @@
 	"first_name": "kreula",
 	"last_name": "doodoo",
 	"email": "kdoodoo@yahoo.com",
-	"password": "helloRightHere"
+	"password": "Wr3Xh4m!mm"
 }
 
 // items
@@ -23,7 +25,7 @@
   "name": "Henry Hoover",
   "description": "Barely used henry hoover - freshly emptied",
   "starting_bid": 99,
-  "end_date": 89983256
+  "end_date": 1798761600
 }
 
 {

@@ -10,11 +10,4 @@ module.exports = function(app) {
         .post(users.logout);
     app.route("/users/:user_id")
         .get(users.get_user);
-    // question management
-    // app.route("/item/:item_id/question")
-    //     .get();
-    // app.route("/item/:item_id/question")
-    //     .post();
-    // app.route("/question/:question_id")
-    //     .post();
     }

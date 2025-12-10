@@ -86,20 +86,6 @@ const logout = (req, res) => {
     })
 }
 
-// question management
-
-const get_questions = (req, res) => {
-    return res.sendStatus(500)
-}
-
-const ask_question = (req, res) => {
-    return res.sendStatus(500)
-}
-
-const answer_question = (req, res) => {
-    return res.sendStatus(500)
-}
-
 module.exports = {
     create_account,
     login,

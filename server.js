@@ -31,7 +31,7 @@ app.get('/', (req, res, next) => {
 // You can uncomment the below three lines as you implement the functionality - we'll discuss this structure in week three.
 require('./app/routes/user.server.routes')(app);
 require('./app/routes/core.server.routes.js')(app);
-// require('./app/routes/question.server.routes')(app);
+require('./app/routes/question.server.routes')(app);
 
 
 // Default response for any other request
