@@ -8,10 +8,17 @@ const get_questions = (req, res) => {
     let item_id = parseInt(req.params.item_id);
     if(isNaN(item_id) || item_id <= 0) return res.status(400).json({ error_message: 'Invalid item id'})
 
-    question.getQuestions(item_id, (err, row) => {
+    // First check if item exists
+    const core = require("../models/core.server.models")
+    core.itemExists(item_id, (err, item) => {
         if(err) return res.status(500).json({ error_message: 'Server error' });
-        if(!row) return res.status(404).json({ error_message: 'Item not found' });
-        return res.status(200).json(row);
+        if(!item) return res.status(404).json({ error_message: 'Item not found' });
+
+        question.getQuestions(item_id, (err2, row) => {
+            if(err2) return res.status(500).json({ error_message: 'Server error' });
+            if(!row || row.length === 0) return res.status(200).json([]);
+            return res.status(200).json(row);
+        })
     })
 }
 

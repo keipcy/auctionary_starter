@@ -27,7 +27,7 @@ const createAccount = (first_name, last_name, email, password, done) => {
 }
 
 const getUserByEmail = (email, done) => {
-    const sql = 'SELECT user_id, password, salt FROM users WHERE email = ?'
+    const sql = 'SELECT user_id, password, salt, session_token FROM users WHERE email = ?'
     
     db.get(sql, [email], (err, row) => {
         return done(err, row)
@@ -109,10 +109,40 @@ const getUserProfile = (user_id, done) => {
     });
 }
 
+const updateSessionToken = (session_token, user_id, done) => {
+    const sql = 'UPDATE users SET session_token = ? WHERE user_id = ?';
+    const values = [session_token, user_id]
+
+    db.run(sql, values, function(err){
+        if(err) return done(err)
+        return done(null, { 'message': 'Successfully updated session token'})
+    })
+}
+
+const getEmailBySessionToken = (session_token, done) => {
+    const sql = "SELECT email FROM users WHERE session_token = ?"
+
+    db.get(sql, [session_token], (err, row) => {
+        return done(err, row)
+    })
+}
+
+const clearSessionToken = (session_token, done) => {
+    const sql = 'UPDATE users SET session_token = NULL WHERE session_token = ?'
+
+    db.run(sql, [session_token], function(err) {
+        if(err) return done(err)
+        return done(null, this.changes)
+    })
+}
+
 module.exports = {
     getHash,
     getUser,
     createAccount,
     getUserByEmail,
-    getUserProfile
+    getUserProfile,
+    updateSessionToken,
+    getEmailBySessionToken,
+    clearSessionToken
 }

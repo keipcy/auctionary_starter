@@ -3,7 +3,7 @@ const core = require("../controllers/core.server.controllers")
 module.exports = function(app) {
     // auction management
     app.route("/search")
-        .get();
+        .get(core.search);
     app.route("/item")
         .post(core.new_item);
     app.route("/item/:item_id/bid")

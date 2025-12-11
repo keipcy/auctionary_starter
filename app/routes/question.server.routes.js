@@ -7,5 +7,5 @@ module.exports = function(app) {
     app.route("/item/:item_id/question")
         .post(question.ask_question);
     app.route("/question/:question_id")
-        .post();
+        .post(question.answer_question);
     }

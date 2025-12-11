@@ -1,10 +1,10 @@
 const db = require("../../database")
 
 const getQuestions = (item_id, done) => {
-    const sql = "SELECT question_id, question, answer FROM questions WHERE item_id = ?"
+    const sql = "SELECT question_id, question AS question_text, answer AS answer_text FROM questions WHERE item_id = ? ORDER BY question_id DESC"
 
-    db.get(sql, [item_id], (err, row) => {
-        return done(err, row)
+    db.all(sql, [item_id], (err, rows) => {
+        return done(err, rows)
     })
 }
 

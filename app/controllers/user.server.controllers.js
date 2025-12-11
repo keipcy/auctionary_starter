@@ -1,7 +1,6 @@
 const user = require("../models/user.server.models")
 const Joi = require("joi")
 const crypto = require("crypto")
-const db = require("../../database")
 
 // functions
 
@@ -27,7 +26,7 @@ const create_account = (req, res) => {
         first_name: Joi.string().min(1).required(),
         last_name: Joi.string().min(1).required(),
         email: Joi.string().email().required(),
-        password: Joi.string().min(9).max(40).pattern(/[A-Z]/).pattern(/[a-z]/).pattern(/[0-9]/).pattern(/[!@#$%^&*]/).required()
+        password: Joi.string().min(8).max(37).pattern(/[0-9]/).pattern(/[A-Z]/).pattern(/[a-z]/).required()
     });
 
     const { error, value } = schema.validate(req.body);
@@ -59,16 +58,25 @@ const login = (req, res) => {
 
         if(row.password !== hash) return res.status(400).json({error_message: 'Invalid email or password'})
 
-        const session_token = crypto.randomBytes(32).toString('hex');
-        const sql = 'UPDATE users SET session_token = ? WHERE user_id = ?';
-
-        db.run(sql, [session_token, row.user_id], (err) => {
-            if(err) return res.status(500).json({error_message: 'Server error'});
+        // If user already has a session token, return it; otherwise generate new one
+        let session_token = row.session_token;
+        
+        if(!session_token) {
+            session_token = crypto.randomBytes(32).toString('hex');
+            
+            user.updateSessionToken(session_token, row.user_id, (err) => {
+                if(err) return res.status(500).json({error_message: 'Server error'});
+                return res.status(200).json({
+                    user_id: row.user_id,
+                    session_token: session_token
+                });
+            });
+        } else {
             return res.status(200).json({
                 user_id: row.user_id,
                 session_token: session_token
             });
-        });
+        }
     });
 }
 
@@ -77,11 +85,9 @@ const logout = (req, res) => {
 
     if(!session_token) return res.status(401).json({error_message: "No session token"});
 
-    const sql = 'UPDATE users SET session_token = NULL WHERE session_token = ?';
-
-    db.run(sql, [session_token], function(err) {
+    user.clearSessionToken(session_token, (err, changes) => {
         if(err) return res.status(500).json({error_message: 'Server error'});
-        if(this.changes === 0) return res.status(401).json({error_message: 'Invalid session token'});
+        if(changes === 0) return res.status(401).json({error_message: 'Invalid session token'});
         return res.status(200).json({message: 'Logged out successfully'})
     })
 }
