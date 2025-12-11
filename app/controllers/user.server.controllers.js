@@ -1,8 +1,14 @@
 const user = require("../models/user.server.models")
 const Joi = require("joi")
 const crypto = require("crypto")
+const { RegExpMatcher, englishDataset, englishRecommendedTransformers } = require('obscenity')
 
 // functions
+
+const matcher = new RegExpMatcher({
+    ...englishDataset.build(),
+    ...englishRecommendedTransformers
+});
 
 const getHash = function(password, salt) {
     return crypto.pbkdf2Sync(password, salt, 10000, 256, 'sha256').toString('hex')
@@ -33,6 +39,14 @@ const create_account = (req, res) => {
     
     if(error) {
         return res.status(400).json({ error_message: error.details[0].message });
+    }
+
+    values = [value.first_name, value.last_name, value.email, value.password]
+
+    for(val in values) {
+        if (matcher.hasMatch(val)) {
+            return res.status(400).json({ error_message: "Input contains profanity" })
+        }
     }
 
     user.createAccount(value.first_name, value.last_name, value.email, value.password, (err, user_id) => {

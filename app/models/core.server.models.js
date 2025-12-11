@@ -114,7 +114,7 @@ const getAllBidsForItem = (item_id, done) => {
     })
 }
 
-const searchItems = (limit, offset, status, query, user_id, done) => {
+const searchItems = (limit, offset, whereConditions, whereParams, done) => {
     let sql = `
         SELECT 
             i.item_id,
@@ -126,31 +126,16 @@ const searchItems = (limit, offset, status, query, user_id, done) => {
             u.last_name
         FROM items i
         LEFT JOIN users u ON i.creator_id = u.user_id
-        WHERE 1=1
     `
-    const params = []
 
-    if (query) {
-        sql += ` AND (i.name LIKE ? OR i.description LIKE ?)`
-        const searchTerm = `%${query}%`
-        params.push(searchTerm, searchTerm)
-    }
-
-    if (status === 'OPEN') {
-        const now = Math.floor(Date.now() / 1000)
-        sql += ` AND i.end_date > ? AND i.creator_id = ?`
-        params.push(now, user_id)
-    } else if (status === 'BID') {
-        sql += ` AND EXISTS (SELECT 1 FROM bids WHERE bids.item_id = i.item_id AND bids.user_id = ?)`
-        params.push(user_id)
-    } else if (status === 'ARCHIVE') {
-        const now = Math.floor(Date.now() / 1000)
-        sql += ` AND i.end_date <= ?`
-        params.push(now)
+    // Add WHERE clause if there are conditions
+    if (whereConditions.length > 0) {
+        sql += ` WHERE ` + whereConditions.join(' AND ')
     }
 
     sql += ` LIMIT ? OFFSET ?`
-    params.push(limit, offset)
+    
+    const params = [...whereParams, limit, offset]
 
     db.all(sql, params, (err, rows) => {
         return done(err, rows)

@@ -1,7 +1,13 @@
 const core = require("../models/core.server.models")
 const Joi = require("joi")
+const { RegExpMatcher, englishDataset, englishRecommendedTransformers } = require('obscenity')
 
 // auction manangement
+
+const matcher = new RegExpMatcher({
+    ...englishDataset.build(),
+    ...englishRecommendedTransformers
+});
 
 const new_item = (req, res) => {
     const session_token = req.get('X-Authorization');
@@ -16,6 +22,14 @@ const new_item = (req, res) => {
 
     const { error, value } = schema.validate(req.body)
     if(error) return res.status(400).json({error_message: error.details[0].message});
+
+    values = [value.name, value.description]
+
+    for(val in values) {
+        if (matcher.hasMatch(val)) {
+            return res.status(400).json({ error_message: "Input contains profanity" })
+        }
+    }
 
     const start_date = Math.floor(Date.now() / 1000)
 
@@ -152,6 +166,27 @@ const search = (req, res) => {
         return res.status(400).json({ error_message: "Authentication required for this search" })
     }
 
+    // Business logic: prepare filters based on status
+    const now = Math.floor(Date.now() / 1000)
+    let whereConditions = []
+    let whereParams = []
+
+    // Apply query string filter
+    if (query) {
+        whereConditions.push('(i.name LIKE ? OR i.description LIKE ?)')
+        const searchTerm = `%${query}%`
+        whereParams.push(searchTerm, searchTerm)
+    }
+
+    // Apply status filters
+    if (status === 'OPEN') {
+        whereConditions.push('i.end_date > ?')
+        whereParams.push(now)
+    } else if (status === 'ARCHIVE') {
+        whereConditions.push('i.end_date <= ?')
+        whereParams.push(now)
+    }
+
     let user_id = null
     if (req.get('X-Authorization')) {
         core.getUserIdFromToken(req.get('X-Authorization'), (err, row) => {
@@ -159,13 +194,23 @@ const search = (req, res) => {
             if (!row) return res.status(401).json({ error_message: "Invalid session" })
 
             user_id = row.user_id
-            core.searchItems(limit, offset, status, query, user_id, (err2, rows) => {
+
+            // Add user-specific filters
+            if (status === 'OPEN') {
+                whereConditions.push('i.creator_id = ?')
+                whereParams.push(user_id)
+            } else if (status === 'BID') {
+                whereConditions.push('EXISTS (SELECT 1 FROM bids WHERE bids.item_id = i.item_id AND bids.user_id = ?)')
+                whereParams.push(user_id)
+            }
+
+            core.searchItems(limit, offset, whereConditions, whereParams, (err2, rows) => {
                 if (err2) return res.status(500).json({ error_message: "Server error" })
                 return res.status(200).json(rows || [])
             })
         })
     } else {
-        core.searchItems(limit, offset, status, query, 0, (err, rows) => {
+        core.searchItems(limit, offset, whereConditions, whereParams, (err, rows) => {
             if (err) return res.status(500).json({ error_message: "Server error" })
             return res.status(200).json(rows || [])
         })
