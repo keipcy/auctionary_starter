@@ -1,6 +1,13 @@
 const question = require("../models/question.server.models")
 const core = require("../models/core.server.models")
 const Joi = require("joi")
+const { RegExpMatcher, englishDataset, englishRecommendedTransformers } = require('obscenity')
+
+const matcher = new RegExpMatcher({
+    ...englishDataset.build(),
+    ...englishRecommendedTransformers
+});
+
 
 // question management
 
@@ -35,6 +42,10 @@ const ask_question = (req, res) => {
 
     const { error, value } = schema.validate(req.body)
     if(error) return res.status(400).json({error_message: error.details[0].message});
+
+    if (matcher.hasMatch(value.question_text)) {
+        return res.status(400).json({ error_message: "Input contains profanity" })
+    }
     
     core.getUserIdFromToken(session_token, (err, row) => {
         if (err) {
@@ -78,7 +89,11 @@ const answer_question = (req, res) => {
 
     const { error, value } = schema.validate(req.body)
     if(error) return res.status(400).json({error_message: error.details[0].message});
-    
+
+    if (matcher.hasMatch(value.question_text)) {
+        return res.status(400).json({ error_message: "Input contains profanity" })
+    }
+
     core.getUserIdFromToken(session_token, (err, row) => {
         if (err) {
             console.error("Token lookup error:", err);
