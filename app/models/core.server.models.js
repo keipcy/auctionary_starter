@@ -1,15 +1,5 @@
 const db = require("../../database")
 
-// helper functions
-
-const getUserIdFromToken = (session_token, done) => {
-    const sql = "SELECT user_id FROM users WHERE session_token = ?"
-
-    db.get(sql, [session_token], (err, row) => {
-        return done(err, row)
-    })
-}
-
 // implementation
 
 const addItem = (item_name, description, starting_bid, start_date, end_date, creator_id, done) => {
@@ -143,7 +133,6 @@ const searchItems = (limit, offset, whereConditions, whereParams, done) => {
 }
 
 module.exports = {
-    getUserIdFromToken,
     addItem,
     getItemFromId,
     bidOnItem,

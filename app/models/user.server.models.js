@@ -5,6 +5,14 @@ const getHash = function(password, salt) {
     return crypto.pbkdf2Sync(password, salt, 10000, 256, 'sha256').toString('hex')
 }
 
+const getUserIdFromToken = (session_token, done) => {
+    const sql = "SELECT user_id FROM users WHERE session_token = ?"
+
+    db.get(sql, [session_token], (err, row) => {
+        return done(err, row)
+    })
+}
+
 const getUser = (user_id, done) => {
     const sql = "SELECT user_id, first_name, last_name, email FROM users WHERE user_id = ?"
 
@@ -138,6 +146,7 @@ const clearSessionToken = (session_token, done) => {
 
 module.exports = {
     getHash,
+    getUserIdFromToken,
     getUser,
     createAccount,
     getUserByEmail,
