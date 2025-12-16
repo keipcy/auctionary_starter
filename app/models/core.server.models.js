@@ -1,11 +1,11 @@
 const db = require("../../database")
 
-//
+// helper functions
 
-const itemExists = (item_id, done) => {
-    const sql = "SELECT item_id FROM items WHERE item_id = ?"
+const getUserIdFromToken = (session_token, done) => {
+    const sql = "SELECT user_id FROM users WHERE session_token = ?"
 
-    db.get(sql, [item_id], (err, row) => {
+    db.get(sql, [session_token], (err, row) => {
         return done(err, row)
     })
 }
@@ -86,6 +86,14 @@ const getItemValidationData = (item_id, done) => {
     })
 }
 
+const itemExists = (item_id, done) => {
+    const sql = "SELECT item_id FROM items WHERE item_id = ?"
+
+    db.get(sql, [item_id], (err, row) => {
+        return done(err, row)
+    })
+}
+
 const getAllBidsForItem = (item_id, done) => {
     const sql = `
         SELECT 
@@ -135,6 +143,7 @@ const searchItems = (limit, offset, whereConditions, whereParams, done) => {
 }
 
 module.exports = {
+    getUserIdFromToken,
     addItem,
     getItemFromId,
     bidOnItem,

@@ -47,7 +47,7 @@ const ask_question = (req, res) => {
         return res.status(400).json({ error_message: "Input contains profanity" })
     }
     
-    user.getUserIdFromToken(session_token, (err, row) => {
+    core.getUserIdFromToken(session_token, (err, row) => {
         if (err) {
             console.error("Token lookup error:", err);
             return res.status(500).json({ error_message: "Server error" })
@@ -94,7 +94,7 @@ const answer_question = (req, res) => {
         return res.status(400).json({ error_message: "Input contains profanity" })
     }
 
-    user.getUserIdFromToken(session_token, (err, row) => {
+    core.getUserIdFromToken(session_token, (err, row) => {
         if (err) {
             console.error("Token lookup error:", err);
             return res.status(500).json({ error_message: "Server error" })
