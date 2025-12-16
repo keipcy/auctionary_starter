@@ -1,14 +1,26 @@
 const db = require("../../database")
 const crypto = require("crypto")
 
+//
+
 const getHash = function(password, salt) {
     return crypto.pbkdf2Sync(password, salt, 10000, 256, 'sha256').toString('hex')
 }
 
-const getUser = (user_id, done) => {
-    const sql = "SELECT user_id, first_name, last_name, email FROM users WHERE user_id = ?"
+const getUserIdFromToken = (session_token, done) => {
+    const sql = "SELECT user_id FROM users WHERE session_token = ?"
 
-    db.get(sql, [user_id], (err, row) => {
+    db.get(sql, [session_token], (err, row) => {
+        return done(err, row)
+    })
+}
+
+//
+
+const getUserByEmail = (email, done) => {
+    const sql = 'SELECT user_id, password, salt, session_token FROM users WHERE email = ?'
+    
+    db.get(sql, [email], (err, row) => {
         return done(err, row)
     })
 }
@@ -23,14 +35,6 @@ const createAccount = (first_name, last_name, email, password, done) => {
     db.run(sql, values, function(err){
         if(err) return done(err)
         return done(null, this.lastID)
-    })
-}
-
-const getUserByEmail = (email, done) => {
-    const sql = 'SELECT user_id, password, salt, session_token FROM users WHERE email = ?'
-    
-    db.get(sql, [email], (err, row) => {
-        return done(err, row)
     })
 }
 
@@ -119,14 +123,6 @@ const updateSessionToken = (session_token, user_id, done) => {
     })
 }
 
-const getEmailBySessionToken = (session_token, done) => {
-    const sql = "SELECT email FROM users WHERE session_token = ?"
-
-    db.get(sql, [session_token], (err, row) => {
-        return done(err, row)
-    })
-}
-
 const clearSessionToken = (session_token, done) => {
     const sql = 'UPDATE users SET session_token = NULL WHERE session_token = ?'
 
@@ -138,11 +134,10 @@ const clearSessionToken = (session_token, done) => {
 
 module.exports = {
     getHash,
-    getUser,
+    getUserIdFromToken,
     createAccount,
     getUserByEmail,
     getUserProfile,
     updateSessionToken,
-    getEmailBySessionToken,
     clearSessionToken
 }
