@@ -32,13 +32,30 @@ const create_account = (req, res) => {
         first_name: Joi.string().min(1).required(),
         last_name: Joi.string().min(1).required(),
         email: Joi.string().email().required(),
-        password: Joi.string().min(8).max(37).pattern(/[0-9]/).pattern(/[A-Z]/).pattern(/[a-z]/).required()
+        password: Joi.string()
+            .min(8)
+            .max(37)
+            .pattern(/[0-9]/)
+            .pattern(/[A-Z]/)
+            .pattern(/[a-z]/)
+            .required()
+            .messages({
+                'string.min': 'Password must be at least 8 characters long',
+                'string.max': 'Password must not exceed 37 characters',
+                'string.pattern.base': 'Password must contain at least one uppercase letter, one lowercase letter, and one number',
+                'any.required': 'Password is required'
+            })
     });
 
     const { error, value } = schema.validate(req.body);
     
     if(error) {
-        return res.status(400).json({ error_message: error.details[0].message });
+        // Provide more specific password error message
+        let errorMessage = error.details[0].message;
+        if (error.details[0].context.key === 'password' && error.details[0].type === 'string.pattern.base') {
+            errorMessage = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
+        }
+        return res.status(400).json({ error_message: errorMessage });
     }
 
     values = [value.first_name, value.last_name, value.email, value.password]
@@ -57,8 +74,13 @@ const create_account = (req, res) => {
 
 const login = (req, res) => {
     const schema = Joi.object({
-        email: Joi.string().email().required(),
-        password: Joi.string().required()
+        email: Joi.string().email().required().messages({
+            'string.email': 'Invalid email format',
+            'any.required': 'Email is required'
+        }),
+        password: Joi.string().required().messages({
+            'any.required': 'Password is required'
+        })
     });
 
     const { error, value } = schema.validate(req.body);
