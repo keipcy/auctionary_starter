@@ -1,4 +1,5 @@
 const core = require("../models/core.server.models")
+const user = require("../models/user.server.models")
 const Joi = require("joi")
 const { RegExpMatcher, englishDataset, englishRecommendedTransformers } = require('obscenity')
 
@@ -37,7 +38,7 @@ const new_item = (req, res) => {
         return res.status(400).json({ error_message: "end_date must be greater than start_date" })
     }
 
-    core.getUserIdFromToken(session_token, (err, row) => {
+    user.getUserIdFromToken(session_token, (err, row) => {
         if (err) return res.status(500).json({ error_message: "Server error" })
         if (!row) return res.status(401).json({ error_message: "Invalid session" })
 
@@ -92,7 +93,7 @@ const bid_item = (req, res) => {
     const { error, value } = schema.validate(req.body)
     if(error) return res.status(400).json({error_message: error.details[0].message});
 
-    core.getUserIdFromToken(session_token, (err, row) => {
+    user.getUserIdFromToken(session_token, (err, row) => {
         if (err) return res.status(500).json({ error_message: "Server error" })
         if (!row) return res.status(401).json({ error_message: "Invalid session" })
         
@@ -189,7 +190,7 @@ const search = (req, res) => {
 
     let user_id = null
     if (req.get('X-Authorization')) {
-        core.getUserIdFromToken(req.get('X-Authorization'), (err, row) => {
+        user.getUserIdFromToken(req.get('X-Authorization'), (err, row) => {
             if (err) return res.status(500).json({ error_message: "Server error" })
             if (!row) return res.status(401).json({ error_message: "Invalid session" })
 
