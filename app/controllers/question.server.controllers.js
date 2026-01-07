@@ -31,7 +31,7 @@ const get_questions = (req, res) => {
 
 const ask_question = (req, res) => {
     let id = parseInt(req.params.item_id);
-    if(isNaN(id) || id <= 0) return res.status(404).json({ error_message: 'Invalid item id'})
+    if(isNaN(id) || id <= 0) return res.status(400).json({ error_message: 'Invalid item id'})
     
     const session_token = req.get('X-Authorization');
     if(!session_token) return res.status(401).json({error_message: "No session token"});
@@ -90,7 +90,7 @@ const answer_question = (req, res) => {
     const { error, value } = schema.validate(req.body)
     if(error) return res.status(400).json({error_message: error.details[0].message});
 
-    if (matcher.hasMatch(value.question_text)) {
+    if (matcher.hasMatch(value.answer_text)) {
         return res.status(400).json({ error_message: "Input contains profanity" })
     }
 
@@ -106,20 +106,26 @@ const answer_question = (req, res) => {
 
         const current_user_id = parseInt(row.user_id)
 
-        core.getItemFromId(id, (err, row) => {
+        // Get the question first
+        question.getQuestion(id, (err, questionRow) => {
             if (err) return res.status(500).json({ error_message: 'Server error' });
-            if (!row) return res.status(404).json({ error_message: 'Item not found' });
+            if (!questionRow) return res.status(404).json({ error_message: 'Question not found' });
 
-            if(current_user_id != parseInt(row.creator_id)) {
-                return res.status(403).json({ error_message: "Only the seller can answer questions on their items"})
-            }
+            // Then get the item to check if current user is creator
+            core.getItemFromId(questionRow.item_id, (err2, itemRow) => {
+                if (err2) return res.status(500).json({ error_message: 'Server error' });
+                if (!itemRow) return res.status(404).json({ error_message: 'Item not found' });
 
-            question.answerQuestion(id, value.answer_text, (err) => {
-                if (err) return res.status(500).json({ error_message: "Server error" })
-                return res.status(200).json({ message: "Question answered added successfully" })
-            })  
+                if(current_user_id !== parseInt(itemRow.creator_id)) {
+                    return res.status(403).json({ error_message: "Only the seller can answer questions on their items"})
+                }
 
-        })
+                question.answerQuestion(id, value.answer_text, (err3) => {
+                    if (err3) return res.status(500).json({ error_message: "Server error" })
+                    return res.status(200).json({ message: "Question answered successfully" })
+                })  
+            })
+        });
     });
 }
 

@@ -8,6 +8,14 @@ const getQuestions = (item_id, done) => {
     })
 }
 
+const getQuestion = (question_id, done) => {
+    const sql = "SELECT question_id, question AS question_text, answer AS answer_text, asked_by, item_id FROM questions WHERE question_id = ?"
+
+    db.get(sql, [question_id], (err, row) => {
+        return done(err, row)
+    })
+}
+
 const addQuestion = (question, asked_by, item_id, done) => {
     const sql = "INSERT INTO questions (question, asked_by, item_id) VALUES (?, ?, ?)"
     const values = [question, asked_by, item_id]
@@ -28,6 +36,7 @@ const answerQuestion = (question_id, answer, done) => {
 
 module.exports = {
     getQuestions,
+    getQuestion,
     addQuestion,
     answerQuestion
 }
